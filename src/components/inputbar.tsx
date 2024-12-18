@@ -2,8 +2,8 @@
 
 import { SendHorizonal } from "lucide-react";
 import { Button } from "./ui/button";
-import { Input } from "./ui/input";
 import { useState } from "react";
+import { Textarea } from "./ui/textarea";
 
 export function InputBar({
   onSend,
@@ -14,17 +14,19 @@ export function InputBar({
     onSend(message);
 
     setMessage("");
-  }
+  };
 
   return (
-    <div className="flex gap-3 box-border pb-6 pt-2 px-10">
-      <Input
-        placeholder="Type a message"
+    <div className="flex items-center gap-3 box-border pb-6 pt-2 px-10">
+      <Textarea
+        placeholder="Type your message here"
         value={message}
         onChange={(event) => setMessage(event.target.value)}
         onKeyDown={(event) => {
-          if (event.key === "Enter") {
-            sendMessage(message);
+          if (event.key === "Enter" && !event.shiftKey) {
+            event.preventDefault();
+            if (message.trim() === "") return;
+            sendMessage(message.trim());
           }
         }}
       />

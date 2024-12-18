@@ -5,6 +5,7 @@ import { WhatsappAvatar } from "./avatar";
 import { InputBar } from "./inputbar";
 import { ScrollArea } from "./ui/scroll-area";
 import { useEffect, useRef } from "react";
+import { formatMessageTime } from "@/lib/utils";
 
 export interface ChatSectionProps {
   chat: Chat | null;
@@ -23,7 +24,6 @@ export function ChatSection({ chat, messages, sendMessage }: ChatSectionProps) {
       <MessageList messages={messages} />
       <InputBar
         onSend={(messageText) => {
-          console.log("Message received: " + messageText);
           sendMessage(messageText);
         }}
       />
@@ -57,19 +57,22 @@ export function ChatSection({ chat, messages, sendMessage }: ChatSectionProps) {
       <ScrollArea ref={scrollAreaRef}>
         <div className="flex flex-col gap-4 flex-1 p-4">
           {messages.map((message, index) => {
-            const isFromMe = message.from === "Alice";
-
             return (
               <div
                 key={index}
-                className={`${isFromMe ? "justify-end" : ""} flex gap-2`}
+                className={`${
+                  message.isFromMe ? "justify-end" : ""
+                } flex gap-2`}
               >
                 <div
                   className={`flex flex-col ${
-                    isFromMe ? "bg-green-400" : "bg-gray-300"
-                  } rounded-lg p-2`}
+                    message.isFromMe ? "bg-green-400" : "bg-gray-300"
+                  } rounded-lg p-2 max-w-[75%]`}
                 >
-                  <span>{message.text}</span>
+                  <span className="whitespace-pre-wrap">{message.text}</span>
+                  <span className="text-muted-foreground text-xs self-end">
+                    {formatMessageTime(message.timestamp)}
+                  </span>
                 </div>
               </div>
             );

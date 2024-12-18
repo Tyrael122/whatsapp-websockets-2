@@ -7,6 +7,7 @@ export type MenuItem = {
 
 export interface Message {
     from: string;
+    isFromMe: boolean;
     text: string;
     timestamp: Date;
 }

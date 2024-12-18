@@ -24,3 +24,7 @@ export const formatMessageDate = (timestamp: Date): string => {
     return timestamp.toLocaleDateString('en-GB'); // UK format: dd/mm/yyyy
   }
 };
+
+export const formatMessageTime = (timestamp: Date): string => {
+  return timestamp.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+}
