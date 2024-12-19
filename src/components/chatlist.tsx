@@ -1,9 +1,9 @@
 "use client";
 
-import { Chat } from "@/lib/models";
 import { WhatsappAvatar } from "./avatar";
 import { ScrollArea } from "./ui/scroll-area";
 import { formatMessageDate } from "@/lib/utils";
+import { Chat } from "@/lib/models";
 
 export interface ChatListProps {
   chatlist: Chat[];
@@ -37,12 +37,14 @@ export function ChatList({
                 <div className="w-full flex justify-between">
                   <span>{chat.name}</span>
                   <span className="text-muted-foreground pr-1 text-xs">
-                    {formatMessageDate(chat.lastMessage.timestamp)}
+                    {chat.lastMessage
+                      ? formatMessageDate(chat.lastMessage.timestamp)
+                      : ""}
                   </span>
                 </div>
 
                 <span className="text-muted-foreground text-sm">
-                  {chat.lastMessage.text}
+                  {chat.lastMessage ? chat.lastMessage.text : ""}
                 </span>
               </div>
             </div>

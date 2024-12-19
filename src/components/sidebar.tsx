@@ -10,9 +10,9 @@ import {
 export function Sidebar() {
   return (
     <div className="hidden sm:flex h-full flex-col p-4 gap-5 border-2">
-      {menuItems.map((item) => {
+      {menuItems.map((item, index) => {
         return (
-          <TooltipProvider>
+          <TooltipProvider key={index}>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Link href="/" className="items-center flex">

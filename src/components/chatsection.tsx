@@ -1,11 +1,11 @@
 "use client";
 
-import { Chat, Message } from "@/lib/models";
 import { WhatsappAvatar } from "./avatar";
 import { InputBar } from "./inputbar";
 import { ScrollArea } from "./ui/scroll-area";
 import { useEffect, useRef } from "react";
 import { formatMessageTime } from "@/lib/utils";
+import { Chat, Message } from "@/lib/models";
 
 export interface ChatSectionProps {
   chat: Chat | null;
@@ -19,9 +19,9 @@ export function ChatSection({ chat, messages, sendMessage }: ChatSectionProps) {
   }
 
   return (
-    <div className="hidden sm:flex flex-col flex-[2] h-full">
+    <div className="hidden sm:flex flex-col justify-between flex-[2] h-full">
       <TopChatBar chatName={chat.name} avatarSrc={chat.avatarSrc} />
-      <MessageList messages={messages} />
+      <MessageList isGroup={chat.isGroup} messages={messages} />
       <InputBar
         onSend={(messageText) => {
           sendMessage(messageText);
@@ -43,7 +43,10 @@ export function ChatSection({ chat, messages, sendMessage }: ChatSectionProps) {
     );
   }
 
-  function MessageList({ messages }: Readonly<{ messages: Message[] }>) {
+  function MessageList({
+    messages,
+    isGroup,
+  }: Readonly<{ messages: Message[]; isGroup: boolean }>) {
     const scrollAreaRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -53,10 +56,14 @@ export function ChatSection({ chat, messages, sendMessage }: ChatSectionProps) {
       }
     }, [messages]);
 
+    console.log("Rendering message list");
+
     return (
-      <ScrollArea ref={scrollAreaRef}>
-        <div className="flex flex-col gap-4 flex-1 p-4">
+      <ScrollArea ref={scrollAreaRef} className="flex-1">
+        <div className="flex flex-col gap-4 p-4">
           {messages.map((message, index) => {
+            const shouldDisplayUsername = isGroup && !message.isFromMe;
+
             return (
               <div
                 key={index}
@@ -69,6 +76,9 @@ export function ChatSection({ chat, messages, sendMessage }: ChatSectionProps) {
                     message.isFromMe ? "bg-green-400" : "bg-gray-300"
                   } rounded-lg p-2 max-w-[75%]`}
                 >
+                  <span className="font-bold">
+                    {shouldDisplayUsername ? message.from : ""}
+                  </span>
                   <span className="whitespace-pre-wrap">{message.text}</span>
                   <span className="text-muted-foreground text-xs self-end">
                     {formatMessageTime(message.timestamp)}

@@ -1,20 +1,23 @@
 import { JSX } from "react";
 
 export type MenuItem = {
-    icon: () => JSX.Element;
-    description: string;
-} 
-
-export interface Message {
-    from: string;
-    isFromMe: boolean;
-    text: string;
-    timestamp: Date;
-}
+  icon: () => JSX.Element;
+  description: string;
+};
 
 export interface Chat {
-    id: number;
-    avatarSrc: string;
-    name: string;
-    lastMessage: Message;
+  id: string;
+  name: string;
+  isGroup: boolean;
+  avatarSrc: string;
+  lastMessage?: Message;
+}
+
+export interface Message {
+  id: number;
+  chatId: string;
+  from: string;
+  isFromMe: boolean;
+  text: string;
+  timestamp: Date;
 }
