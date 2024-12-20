@@ -30,11 +30,23 @@ export const useChatService = (
   }
 
   const [chatId, setChatId] = useState<string | null>(null);
-  const [socket, setSocket] = useState<WebSocket | null>(null);
+
+  const socket = useWebSocketConnection();
 
   useEffect(() => {
-    createWebSocketConnection(setSocket, userId, callbacks);
-  }, []);
+    if (!socket) {
+      return;
+    }
+
+    console.log("Setting up socket event listener");
+
+    const onMessageCallback = (event: MessageEvent) => {
+      const data = JSON.parse(event.data);
+      handleIncomingEvent(data, userId, callbacks);
+    };
+
+    socket.onmessage = onMessageCallback;
+  }, [callbacks.onMessageReceived, socket, userId]);
 
   useEffect(() => {
     if (socket) {
@@ -49,6 +61,7 @@ export const useChatService = (
     });
 
     console.log("Sending chat list request", request);
+    console.log("Socket at chat list request: ", socket);
 
     socket?.send(request);
   }
@@ -82,37 +95,30 @@ export const useChatService = (
   return { sendMessage, selectChat, requestChatList };
 };
 
-function createWebSocketConnection(
-  onConnection: (socket: WebSocket) => void,
-  currentUserId: string,
-  callbacks: UseChatServiceCallbacks
-) {
-  const ws = new WebSocket("ws://localhost:8080");
+function useWebSocketConnection(): WebSocket | null {
+  const [socket, setSocket] = useState<WebSocket | null>(null);
 
-  ws.onopen = () => {
-    console.log("WebSocket connection established");
-    onConnection(ws);
-  };
+  useEffect(() => {
+    const ws = new WebSocket("ws://localhost:8080");
 
-  ws.onmessage = (event) => {
-    const data = JSON.parse(event.data);
-    handleIncomingEvent(data, currentUserId, callbacks);
-  };
+    ws.onopen = () => {
+      console.log("WebSocket connection established");
+      setSocket(ws);
+    };
 
-  ws.onerror = (error) => {
-    console.error("WebSocket error:", error);
-  };
+    ws.onerror = (error) => {
+      console.error("WebSocket error:", error);
+    };
 
-  ws.onclose = () => {
-    console.log("WebSocket connection closed");
-  };
+    ws.onclose = () => {
+      console.log("WebSocket connection closed");
+    };
 
-  // Cleanup the WebSocket connection when the component unmount
-  return () => {
-    if (ws) {
-      ws.close();
-    }
-  };
+    console.log("Setting socket");
+    console.log(ws);
+  }, []);
+
+  return socket;
 }
 
 function handleIncomingEvent(
