@@ -34,6 +34,12 @@ export const useChatService = (
   const socket = useWebSocketConnection();
 
   useEffect(() => {
+    if (socket) {
+      callbacks.onConnection();
+    }
+  }, [socket]);
+
+  useEffect(() => {
     if (!socket) {
       return;
     }
@@ -46,13 +52,7 @@ export const useChatService = (
     };
 
     socket.onmessage = onMessageCallback;
-  }, [callbacks.onMessageReceived, socket, userId]);
-
-  useEffect(() => {
-    if (socket) {
-      callbacks.onConnection();
-    }
-  }, [socket]);
+  }, [...Object.values(callbacks), socket, userId]);
 
   function requestChatList() {
     const request = JSON.stringify({
@@ -95,32 +95,6 @@ export const useChatService = (
   return { sendMessage, selectChat, requestChatList };
 };
 
-function useWebSocketConnection(): WebSocket | null {
-  const [socket, setSocket] = useState<WebSocket | null>(null);
-
-  useEffect(() => {
-    const ws = new WebSocket("ws://localhost:8080");
-
-    ws.onopen = () => {
-      console.log("WebSocket connection established");
-      setSocket(ws);
-    };
-
-    ws.onerror = (error) => {
-      console.error("WebSocket error:", error);
-    };
-
-    ws.onclose = () => {
-      console.log("WebSocket connection closed");
-    };
-
-    console.log("Setting socket");
-    console.log(ws);
-  }, []);
-
-  return socket;
-}
-
 function handleIncomingEvent(
   data: any,
   currentUserId: string,
@@ -143,8 +117,6 @@ function handleIncomingEvent(
   }
 
   if (data.type === OutgoingEventType.INCOMING_MESSAGES) {
-    console.log("Received messages", data.messages);
-
     const messagesDTOs = data.messages as MessageDTO[];
 
     const messages = messagesDTOs.map((messageDTO) =>
@@ -156,6 +128,31 @@ function handleIncomingEvent(
   }
 
   console.warn("Unknown event type", data.type);
+}
+
+function useWebSocketConnection(): WebSocket | null {
+  const [socket, setSocket] = useState<WebSocket | null>(null);
+
+  useEffect(() => {
+    const ws = new WebSocket("ws://localhost:8080");
+
+    ws.onopen = () => {
+      console.log("WebSocket connection established");
+      setSocket(ws);
+    };
+
+    ws.onerror = (error) => {
+      console.error("WebSocket error:", error);
+    };
+
+    ws.onclose = () => {
+      console.log("WebSocket connection closed");
+    };
+
+    return () => ws && ws.close();
+  }, []);
+  
+  return socket;
 }
 
 function parseMessageDTO(

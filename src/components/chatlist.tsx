@@ -24,7 +24,7 @@ export function ChatList({
           return (
             <div
               key={chat.id}
-              className={`flex items-center border-b-2 pl-4 py-2 cursor-pointer hover:bg-gray-100 ${
+              className={`flex border-b-2 pl-4 py-2 cursor-pointer hover:bg-gray-100 ${
                 chat === selectedChat ? "bg-gray-100" : ""
               }`}
               onClick={() => {
@@ -33,7 +33,7 @@ export function ChatList({
               }}
             >
               <WhatsappAvatar src={chat.avatarSrc} />
-              <div className="w-full px-3">
+              <div className="w-full h-full px-3">
                 <div className="w-full flex justify-between">
                   <span>{chat.name}</span>
                   <span className="text-muted-foreground pr-1 text-xs">

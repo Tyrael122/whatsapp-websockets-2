@@ -4,27 +4,13 @@ import { ChatList } from "@/components/chatlist";
 import { ChatSection } from "@/components/chatsection";
 import { Chat, Message } from "@/lib/models";
 import { useChatService } from "@/services/chatService";
-import { useCallback, useState } from "react";
+import { useState } from "react";
 
 export default function ChatsPage() {
   const [currentChat, setCurrentChat] = useState<Chat | null>(null);
 
   const [chatList, setChatList] = useState<Chat[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
-
-  const handleIncomingMessage = useCallback(
-    (messages: Message[]) => {
-      for (const message of messages) {
-        console.log("Received message", message);
-        console.log("Current chat", currentChat);
-
-        if (message.chatId === currentChat?.id) {
-          setMessages((prevMessages) => [...prevMessages, message]);
-        }
-      }
-    },
-    [currentChat]
-  );
 
   const { sendMessage, selectChat, requestChatList } = useChatService({
     onMessageReceived: (messages) => {
@@ -71,6 +57,14 @@ export default function ChatsPage() {
       />
     </div>
   );
+
+  function handleIncomingMessage(messages: Message[]) {
+    for (const message of messages) {
+      if (message.chatId === currentChat?.id) {
+        setMessages((prevMessages) => [...prevMessages, message]);
+      }
+    }
+  }
 
   function handleChatListUpdate(chats: Chat[]) {
     setChatList(chats);
