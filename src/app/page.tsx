@@ -2,9 +2,13 @@
 
 import { ChatList } from "@/components/chatlist";
 import { ChatSection } from "@/components/chatsection";
+import { Button } from "@/components/ui/button";
 import { Chat, Message } from "@/lib/models";
-import { useChatService } from "@/services/chatService";
-import { useState } from "react";
+import {
+  useChatService,
+  useChatServiceCallbacks,
+} from "@/services/chatService";
+import { useCallback, useState } from "react";
 
 export default function ChatsPage() {
   const [currentChat, setCurrentChat] = useState<Chat | null>(null);
@@ -12,22 +16,39 @@ export default function ChatsPage() {
   const [chatList, setChatList] = useState<Chat[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
 
-  const { sendMessage, selectChat, requestChatList } = useChatService({
-    onMessageReceived: (messages) => {
-      handleIncomingMessage(messages);
+  const handleChatListUpdate = useCallback(setChatList, []);
+
+  const { updateOnMessageCallback, sendMessage, selectChat, requestChatList } =
+    useChatService(() => requestChatList());
+
+  const handleIncomingMessage = useCallback(
+    (messages: Message[]) => {
+      console.log("Current chat id at handleIncomingMessage", currentChat?.id);
+
+      for (const message of messages) {
+        if (message.chatId === currentChat?.id) {
+          setMessages((prevMessages) => [...prevMessages, message]);
+        }
+      }
+
       requestChatList();
     },
-    onChatListUpdate: handleChatListUpdate,
-    onConnection: () => {
-      requestChatList();
+    [currentChat, requestChatList]
+  );
+
+  useChatServiceCallbacks(
+    {
+      onMessageReceived: handleIncomingMessage,
+      onChatListUpdate: handleChatListUpdate,
     },
-  });
+    updateOnMessageCallback
+  );
 
   return (
     <div className="w-full h-full flex">
       <ChatList
         chatlist={chatList}
-        selectedChat={currentChat}
+        selectedChatId={currentChat?.id}
         onSelectChat={(chat) => {
           if (currentChat?.id === chat.id) {
             console.log("Already in chat", chat.id);
@@ -57,16 +78,4 @@ export default function ChatsPage() {
       />
     </div>
   );
-
-  function handleIncomingMessage(messages: Message[]) {
-    for (const message of messages) {
-      if (message.chatId === currentChat?.id) {
-        setMessages((prevMessages) => [...prevMessages, message]);
-      }
-    }
-  }
-
-  function handleChatListUpdate(chats: Chat[]) {
-    setChatList(chats);
-  }
 }

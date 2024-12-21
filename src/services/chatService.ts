@@ -6,9 +6,12 @@ import {
 } from "@/lib/dtos";
 import { Chat, Message } from "@/lib/models";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export interface UseChatServiceReturn {
+  updateOnMessageCallback: (
+    callback: (data: any, userId: string) => void
+  ) => void;
   sendMessage: (message: string) => void;
   selectChat: (chatId: string) => void;
   requestChatList: () => void;
@@ -17,12 +20,9 @@ export interface UseChatServiceReturn {
 export interface UseChatServiceCallbacks {
   onMessageReceived: (messages: Message[]) => void;
   onChatListUpdate: (chatList: Chat[]) => void;
-  onConnection: () => void;
 }
 
-export const useChatService = (
-  callbacks: UseChatServiceCallbacks
-): UseChatServiceReturn => {
+export const useChatService = (onConnection: () => void) => {
   const searchParams = useSearchParams();
   const userId = searchParams.get("userId");
   if (!userId) {
@@ -35,26 +35,35 @@ export const useChatService = (
 
   useEffect(() => {
     if (socket) {
-      callbacks.onConnection();
+      onConnection();
     }
   }, [socket]);
 
-  useEffect(() => {
-    if (!socket) {
-      return;
-    }
+  const updateOnMessageCallback = useCallback(
+    (callback: (data: any, userId: string) => void) => {
+      if (!socket) {
+        console.log("Events not registered because socket is not ready yet");
+        return;
+      }
 
-    console.log("Setting up socket event listener");
+      const onMessageCallback = (event: MessageEvent) => {
+        const data = JSON.parse(event.data);
+        callback(data, userId);
+        // handleIncomingEvent(data, userId, callbacks);
+      };
 
-    const onMessageCallback = (event: MessageEvent) => {
-      const data = JSON.parse(event.data);
-      handleIncomingEvent(data, userId, callbacks);
-    };
+      socket.onmessage = onMessageCallback;
 
-    socket.onmessage = onMessageCallback;
-  }, [...Object.values(callbacks), socket, userId]);
+      console.log("Registered onmessage callback");
 
-  function requestChatList() {
+      return () => {
+        socket.onmessage = null;
+      };
+    },
+    [socket, userId]
+  );
+
+  const requestChatList = useCallback(() => {
     const request = JSON.stringify({
       type: IncomingEventType.CHAT_LIST_REQUEST,
       userId: userId,
@@ -64,35 +73,54 @@ export const useChatService = (
     console.log("Socket at chat list request: ", socket);
 
     socket?.send(request);
-  }
+  }, [socket, userId]);
 
-  function selectChat(chatId: string) {
-    const request = JSON.stringify({
-      type: IncomingEventType.GET_CHAT_MESSAGES,
-      chatId: chatId,
+  const selectChat = useCallback(
+    (chatId: string) => {
+      const request = JSON.stringify({
+        type: IncomingEventType.GET_CHAT_MESSAGES,
+        chatId: chatId,
+      });
+
+      console.log("Requesting chat messages", request);
+
+      socket?.send(request);
+
+      setChatId(chatId);
+    },
+    [socket]
+  );
+
+  const sendMessage = useCallback(
+    (message: string) => {
+      const request = JSON.stringify({
+        type: IncomingEventType.SEND_MESSAGE,
+        chatId: chatId,
+        from: userId,
+        message: message,
+      });
+
+      console.log("Sending message", request);
+
+      socket?.send(request);
+    },
+    [socket, chatId, userId]
+  );
+
+  return { updateOnMessageCallback, sendMessage, selectChat, requestChatList };
+};
+
+export const useChatServiceCallbacks = (
+  callbacks: UseChatServiceCallbacks,
+  updateCallbacks: (callback: (data: any, userId: string) => void) => void
+) => {
+  useEffect(() => {
+    console.log("Setting up socket event listener");
+
+    updateCallbacks((data, userId) => {
+      handleIncomingEvent(data, userId, callbacks);
     });
-
-    console.log("Requesting chat messages", request);
-
-    socket?.send(request);
-
-    setChatId(chatId);
-  }
-
-  function sendMessage(message: string) {
-    const request = JSON.stringify({
-      type: IncomingEventType.SEND_MESSAGE,
-      chatId: chatId,
-      from: userId,
-      message: message,
-    });
-
-    console.log("Sending message", request);
-
-    socket?.send(request);
-  }
-
-  return { sendMessage, selectChat, requestChatList };
+  }, [...Object.values(callbacks), updateCallbacks]);
 };
 
 function handleIncomingEvent(
@@ -151,7 +179,7 @@ function useWebSocketConnection(): WebSocket | null {
 
     return () => ws && ws.close();
   }, []);
-  
+
   return socket;
 }
 

@@ -7,13 +7,13 @@ import { Chat } from "@/lib/models";
 
 export interface ChatListProps {
   chatlist: Chat[];
-  selectedChat: Chat | null;
+  selectedChatId: string | undefined;
   onSelectChat: (chat: Chat) => void;
 }
 
 export function ChatList({
   chatlist,
-  selectedChat,
+  selectedChatId,
   onSelectChat,
 }: ChatListProps) {
   return (
@@ -24,8 +24,8 @@ export function ChatList({
           return (
             <div
               key={chat.id}
-              className={`flex border-b-2 pl-4 py-2 cursor-pointer hover:bg-gray-100 ${
-                chat === selectedChat ? "bg-gray-100" : ""
+              className={`flex border-b-2 pl-4 py-2 min-h-16 cursor-pointer hover:bg-gray-100 ${
+                chat.id === selectedChatId ? "bg-gray-100" : ""
               }`}
               onClick={() => {
                 console.log(`Navigating to chat ${chat.id}`);
