@@ -16,8 +16,9 @@ export function ChatList({
   selectedChatId,
   onSelectChat,
 }: ChatListProps) {
+
   return (
-    <div className="min-w-44 max-w-96 flex flex-col flex-1 border-r-2 pt-3">
+    <div className="flex flex-col h-full">
       <span className="font-bold text-xl pb-2 pl-3">Chats</span>
       <ScrollArea>
         {chatlist.map((chat) => {

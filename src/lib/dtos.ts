@@ -10,6 +10,8 @@ export enum IncomingEventType {
   CHAT_LIST_REQUEST = "CHAT_LIST_REQUEST",
   GET_CHAT_MESSAGES = "GET_CHAT_MESSAGES",
   SEND_MESSAGE = "SEND_MESSAGE",
+  CREATE_GROUP_CHAT = "CREATE_GROUP_CHAT",
+  GET_ALL_USERS = "GET_ALL_USERS",
 }
 
 export enum OutgoingEventType {
@@ -29,6 +31,12 @@ export interface SendMessageRequest extends IncomingWhatsAppEvent {
   chatId: string;
   from: string;
   message: string;
+}
+
+export interface CreateGroupChatRequest extends IncomingWhatsAppEvent {
+  name: string;
+  userIds: string[];
+  avatarSrc?: string;
 }
 
 export interface ChatListResponse extends OutgoingWhatsAppEvent {
@@ -53,4 +61,10 @@ export interface MessageDTO {
   from: string;
   text: string;
   timestamp: string;
+}
+
+export interface UserDTO {
+  id: string;
+  name: string;
+  avatarSrc: string;
 }

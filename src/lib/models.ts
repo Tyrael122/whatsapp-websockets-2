@@ -21,3 +21,15 @@ export interface Message {
   text: string;
   timestamp: Date;
 }
+
+export interface User {
+  id: string;
+  name: string;
+  avatarSrc: string;
+}
+
+export interface GroupCreationInfo {
+  name: string;
+  userIds: string[];
+  avatarSrc?: string;
+}

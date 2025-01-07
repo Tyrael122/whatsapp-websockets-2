@@ -1,67 +1,88 @@
 "use client";
 
-import { ChatList } from "@/components/chatlist";
 import { ChatSection } from "@/components/chatsection";
-import { Button } from "@/components/ui/button";
+import { LeftSideRoute, LeftSideRouter } from "@/components/leftSideRouter";
 import { Chat, Message } from "@/lib/models";
 import {
   useChatService,
   useChatServiceCallbacks,
 } from "@/services/chatService";
 import { useCallback, useState } from "react";
+import { useLayoutContext } from "./contextProvider";
 
-export default function ChatsPage() {
+export default function App() {
+  const { setCurrentRoute } = useLayoutContext();
+
   const [currentChat, setCurrentChat] = useState<Chat | null>(null);
 
   const [chatList, setChatList] = useState<Chat[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
 
-  const handleChatListUpdate = useCallback(setChatList, []);
-
   const { updateOnMessageCallback, sendMessage, selectChat, requestChatList } =
-    useChatService(() => requestChatList());
+    useChatService(() => requestChatList().then(setChatList));
 
   const handleIncomingMessage = useCallback(
-    (messages: Message[]) => {
-      console.log("Current chat id at handleIncomingMessage", currentChat?.id);
-
+    (messages: Message[], currentChatId?: string) => {
       for (const message of messages) {
-        if (message.chatId === currentChat?.id) {
+        if (message.chatId === currentChatId) {
           setMessages((prevMessages) => [...prevMessages, message]);
         }
       }
 
-      requestChatList();
+      requestChatList().then((chatList) => {
+        console.log("Chat list updated", chatList);
+        setChatList(chatList);
+      });
     },
-    [currentChat, requestChatList]
+    [requestChatList]
   );
 
   useChatServiceCallbacks(
     {
-      onMessageReceived: handleIncomingMessage,
-      onChatListUpdate: handleChatListUpdate,
+      onMessageReceived: useCallback(
+        (messages) => {
+          handleIncomingMessage(messages, currentChat?.id);
+        },
+        [currentChat]
+      ),
     },
+    
     updateOnMessageCallback
   );
 
   return (
     <div className="w-full h-full flex">
-      <ChatList
-        chatlist={chatList}
-        selectedChatId={currentChat?.id}
-        onSelectChat={(chat) => {
-          if (currentChat?.id === chat.id) {
-            console.log("Already in chat", chat.id);
-            return;
-          }
+      <LeftSideRouter
+        chatListProps={{
+          chatlist: chatList,
+          selectedChatId: currentChat?.id,
+          onSelectChat: (chat) => {
+            if (currentChat?.id === chat.id) {
+              console.log("Already in chat", chat.id);
+              return;
+            }
 
-          setMessages([]);
+            setMessages([]);
 
-          console.log("Navigating to chat", chat);
+            console.log("Navigating to chat", chat);
 
-          setCurrentChat(chat);
+            setCurrentChat(chat);
 
-          selectChat(chat.id);
+            selectChat(chat.id).then((messages) => {
+              console.log("Messages received", messages);
+              handleIncomingMessage(messages, chat.id);
+            });
+          },
+        }}
+        groupCreationProps={{
+          onCreateGroup: () => {
+            requestChatList().then((chatList) => {
+              console.log("Chat list updated", chatList);
+              setChatList(chatList);
+            });
+
+            setCurrentRoute(LeftSideRoute.CHATS);
+          },
         }}
       />
 

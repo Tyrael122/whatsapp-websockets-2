@@ -3,9 +3,10 @@
 import { WhatsappAvatar } from "./avatar";
 import { InputBar } from "./inputbar";
 import { ScrollArea } from "./ui/scroll-area";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { formatMessageTime } from "@/lib/utils";
-import { Chat, Message } from "@/lib/models";
+import { Chat, Message, User } from "@/lib/models";
+import { useChatService } from "@/services/chatService";
 
 export interface ChatSectionProps {
   chat: Chat | null;
@@ -17,7 +18,7 @@ export function ChatSection({ chat, messages, sendMessage }: ChatSectionProps) {
   if (!chat) {
     return null;
   }
-  
+
   return (
     <div className="hidden sm:flex flex-col justify-between flex-[2] h-full">
       <TopChatBar chatName={chat.name} avatarSrc={chat.avatarSrc} />
@@ -48,6 +49,15 @@ function MessageList({
   messages,
   isGroup,
 }: Readonly<{ messages: Message[]; isGroup: boolean }>) {
+  const [users, setUsers] = useState<User[]>([]);
+  const chatService = useChatService();
+
+  useEffect(() => {
+    chatService.getAllUsers().then((users) => {
+      setUsers(users);
+    });
+  }, []);
+
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -57,13 +67,13 @@ function MessageList({
     }
   }, [messages]);
 
-  console.log("Rendering message list");
-
   return (
     <ScrollArea ref={scrollAreaRef} className="flex-1">
       <div className="flex flex-col gap-4 p-4">
         {messages.map((message) => {
+          console.log("Rendering message", message.id);
           const shouldDisplayUsername = isGroup && !message.isFromMe;
+          const username = users.find((user) => user.id === message.from)?.name;
 
           return (
             <div
@@ -76,7 +86,7 @@ function MessageList({
                 } rounded-lg p-2 max-w-[75%]`}
               >
                 <span className="font-bold">
-                  {shouldDisplayUsername ? message.from : ""}
+                  {shouldDisplayUsername ? username : ""}
                 </span>
                 <span className="whitespace-pre-wrap">{message.text}</span>
                 <span className="text-muted-foreground text-xs self-end">
