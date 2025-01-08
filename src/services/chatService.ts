@@ -4,21 +4,20 @@ import {
   MessageDTO,
   OutgoingEventType,
 } from "@/lib/dtos";
-import { GroupCreationInfo, Message, User } from "@/lib/models";
+import { Chat, GroupCreationInfo, Message, User } from "@/lib/models";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { useWebSocket } from "./websocketClient";
 
 export interface UseChatServiceReturn {
-  updateOnMessageCallback: (
-    callback: (data: any, userId: string) => void
-  ) => void;
+  updateCallbacks: (callback: (data: any, userId: string) => void) => void;
   sendMessage: (message: string) => void;
   selectChat: (chatId: string) => void;
   requestChatList: () => void;
 }
 
 export interface UseChatServiceCallbacks {
+  onChatListUpdate: (chats: Chat[]) => void;
   onMessageReceived: (messages: Message[]) => void;
 }
 
@@ -31,9 +30,13 @@ export const useChatService = (onConnection?: () => void) => {
 
   const [chatId, setChatId] = useState<string | null>(null);
 
-  const socket = useWebSocket(onConnection);
+  const socket = useWebSocket((socket) => {
+    socket.request({ type: IncomingEventType.USER_ID_INFO, userId });
+    onConnection?.();
+  });
+  // const socket = useWebSocket(onConnection);
 
-  const updateOnMessageCallback = useCallback(
+  const updateCallbacks = useCallback(
     (callback: (data: any, userId: string) => void) => {
       if (!socket) {
         console.log("Events not registered because socket is not ready yet");
@@ -130,12 +133,12 @@ export const useChatService = (onConnection?: () => void) => {
   }, [socket]);
 
   return {
-    updateOnMessageCallback,
+    updateCallbacks,
     sendMessage,
     selectChat,
     requestChatList,
     createGroupChat,
-    getAllUsers
+    getAllUsers,
   };
 };
 
@@ -155,14 +158,14 @@ export const useChatServiceCallbacks = (
 function handleIncomingEvent(
   data: any,
   currentUserId: string,
-  { onMessageReceived }: UseChatServiceCallbacks
+  { onChatListUpdate, onMessageReceived }: UseChatServiceCallbacks
 ) {
   console.log("Received event", data);
 
   if (data.type === OutgoingEventType.CHAT_LIST_RESPONSE) {
     const chats = handleChatListResponse(data, currentUserId);
 
-    // onChatListUpdate(chats);
+    onChatListUpdate(chats);
     return;
   }
 
@@ -189,6 +192,8 @@ function handleChatListResponse(data: any, currentUserId: string) {
 
 function handleIncomingMessages(data: any, currentUserId: string) {
   const messagesDTOs = data.messages as MessageDTO[];
+
+  console.log("Incoming messages", messagesDTOs);
 
   return messagesDTOs.map((messageDTO) =>
     parseMessageDTO(messageDTO, currentUserId)

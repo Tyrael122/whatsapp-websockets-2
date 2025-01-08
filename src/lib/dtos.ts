@@ -7,6 +7,7 @@ export interface OutgoingWhatsAppEvent {
 }
 
 export enum IncomingEventType {
+  USER_ID_INFO = "USER_ID_INFO",
   CHAT_LIST_REQUEST = "CHAT_LIST_REQUEST",
   GET_CHAT_MESSAGES = "GET_CHAT_MESSAGES",
   SEND_MESSAGE = "SEND_MESSAGE",
@@ -19,7 +20,7 @@ export enum OutgoingEventType {
   INCOMING_MESSAGES = "INCOMING_MESSAGES",
 }
 
-export interface ChatListRequest extends IncomingWhatsAppEvent {
+export interface ChatListRequest {
   userId?: string;
 }
 

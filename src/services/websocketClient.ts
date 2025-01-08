@@ -29,7 +29,7 @@ class WebSocketManager {
     this.socket = new WebSocket(this.url);
 
     if (onOpen) {
-      this.socket.onopen = () => onOpen();
+      this.socket.onopen = onOpen;
     }
 
     // Handle incoming messages
@@ -80,11 +80,11 @@ class WebSocketManager {
 export const webSocketManager = new WebSocketManager("ws://localhost:8080");
 
 // The hook returns the same WebSocketManager instance
-export function useWebSocket(onConnect?: () => void) {
+export function useWebSocket(onConnect?: (instance: WebSocketManager) => void) {
   const connectionRef = useRef<WebSocketManager>(webSocketManager);
 
   useEffect(() => {
-    webSocketManager.connect(onConnect);
+    webSocketManager.connect(() => onConnect?.(webSocketManager));
   }, []);
 
   return connectionRef.current;

@@ -18,11 +18,19 @@ export default function App() {
   const [chatList, setChatList] = useState<Chat[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
 
-  const { updateOnMessageCallback, sendMessage, selectChat, requestChatList } =
+  const { updateCallbacks, sendMessage, selectChat, requestChatList } =
     useChatService(() => requestChatList().then(setChatList));
+
+  const handleChatListUpdate = useCallback(() => {
+    requestChatList().then((chatList) => {
+      console.log("Chat list updated", chatList);
+    });
+  }, [requestChatList]);
 
   const handleIncomingMessage = useCallback(
     (messages: Message[], currentChatId?: string) => {
+      console.log("Incoming messages", messages);
+
       for (const message of messages) {
         if (message.chatId === currentChatId) {
           setMessages((prevMessages) => [...prevMessages, message]);
@@ -45,9 +53,10 @@ export default function App() {
         },
         [currentChat]
       ),
+      onChatListUpdate: setChatList,
     },
-    
-    updateOnMessageCallback
+
+    updateCallbacks
   );
 
   return (
@@ -76,10 +85,7 @@ export default function App() {
         }}
         groupCreationProps={{
           onCreateGroup: () => {
-            requestChatList().then((chatList) => {
-              console.log("Chat list updated", chatList);
-              setChatList(chatList);
-            });
+            handleChatListUpdate();
 
             setCurrentRoute(LeftSideRoute.CHATS);
           },

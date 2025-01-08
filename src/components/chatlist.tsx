@@ -36,7 +36,7 @@ export function ChatList({
               <WhatsappAvatar src={chat.avatarSrc} />
               <div className="w-full h-full px-3">
                 <div className="w-full flex justify-between">
-                  <span>{chat.name}</span>
+                  <span className="font-semibold">{chat.name}</span>
                   <span className="text-muted-foreground pr-1 text-xs">
                     {chat.lastMessage
                       ? formatMessageDate(chat.lastMessage.timestamp)
