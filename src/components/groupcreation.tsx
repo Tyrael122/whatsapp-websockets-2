@@ -5,6 +5,7 @@ import { Button } from "./ui/button";
 import { Camera, ChevronRight } from "lucide-react";
 import { Input } from "./ui/input";
 import { useFileInput } from "./fileinput";
+import { WhatsappAvatar } from "./avatar";
 
 export interface GroupCreationProps {
   onCreateGroup: () => void;
@@ -83,6 +84,7 @@ function AddingGroupUsers({
                 });
               }}
             >
+              <WhatsappAvatar src={user.avatarSrc} />
               <div className="w-full h-full px-3">
                 <div className="w-full flex justify-between">
                   <span>{user.name}</span>

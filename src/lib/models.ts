@@ -18,8 +18,10 @@ export interface Message {
   chatId: string;
   from: string;
   isFromMe: boolean;
-  text: string;
+  message: string;
   timestamp: Date;
+  isAudio: boolean;
+  audioDuration?: number;
 }
 
 export interface User {

@@ -18,8 +18,13 @@ export default function App() {
   const [chatList, setChatList] = useState<Chat[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
 
-  const { updateCallbacks, sendMessage, selectChat, requestChatList } =
-    useChatService(() => requestChatList().then(setChatList));
+  const {
+    updateCallbacks,
+    sendMessage,
+    sendAudioMessage,
+    selectChat,
+    requestChatList,
+  } = useChatService(() => requestChatList().then(setChatList));
 
   const handleChatListUpdate = useCallback(() => {
     requestChatList().then((chatList) => {
@@ -101,6 +106,13 @@ export default function App() {
           }
 
           sendMessage(message);
+        }}
+        sendAudioMessage={(audioBlob) => {
+          if (!currentChat) {
+            return;
+          }
+
+          sendAudioMessage(audioBlob);
         }}
       />
     </div>

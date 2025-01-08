@@ -7,14 +7,16 @@ import { useEffect, useRef, useState } from "react";
 import { formatMessageTime } from "@/lib/utils";
 import { Chat, Message, User } from "@/lib/models";
 import { useChatService } from "@/services/chatService";
+import { AudioMessage } from "./audio/audioMessage";
 
 export interface ChatSectionProps {
   chat: Chat | null;
   messages: Message[];
   sendMessage: (message: string) => void;
+  sendAudioMessage: (audioBlob: Blob) => void;
 }
 
-export function ChatSection({ chat, messages, sendMessage }: ChatSectionProps) {
+export function ChatSection({ chat, messages, sendMessage, sendAudioMessage }: ChatSectionProps) {
   if (!chat) {
     return null;
   }
@@ -26,6 +28,9 @@ export function ChatSection({ chat, messages, sendMessage }: ChatSectionProps) {
       <InputBar
         onSend={(messageText) => {
           sendMessage(messageText);
+        }}
+        onAudioSend={(audioBlob) => {
+          sendAudioMessage(audioBlob);
         }}
       />
     </div>
@@ -88,7 +93,11 @@ function MessageList({
                 <span className="font-bold">
                   {shouldDisplayUsername ? username : ""}
                 </span>
-                <span className="whitespace-pre-wrap">{message.text}</span>
+                {message.isAudio ? (
+                  <AudioMessage audioURL={message.message!!} />
+                ) : (
+                  <span className="whitespace-pre-wrap">{message.message}</span>
+                )}
                 <span className="text-muted-foreground text-xs self-end">
                   {formatMessageTime(message.timestamp)}
                 </span>

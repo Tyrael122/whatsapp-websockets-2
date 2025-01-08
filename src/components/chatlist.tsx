@@ -2,8 +2,9 @@
 
 import { WhatsappAvatar } from "./avatar";
 import { ScrollArea } from "./ui/scroll-area";
-import { formatMessageDate } from "@/lib/utils";
+import { extractAudioDuration, formatMessageDate } from "@/lib/utils";
 import { Chat } from "@/lib/models";
+import { Mic } from "lucide-react";
 
 export interface ChatListProps {
   chatlist: Chat[];
@@ -16,7 +17,6 @@ export function ChatList({
   selectedChatId,
   onSelectChat,
 }: ChatListProps) {
-
   return (
     <div className="flex flex-col h-full">
       <span className="font-bold text-xl pb-2 pl-3">Chats</span>
@@ -25,7 +25,7 @@ export function ChatList({
           return (
             <div
               key={chat.id}
-              className={`flex border-b-2 pl-4 py-2 min-h-16 cursor-pointer hover:bg-gray-100 ${
+              className={`flex border-b-2 pl-4 py-2 h-16 cursor-pointer hover:bg-gray-100 ${
                 chat.id === selectedChatId ? "bg-gray-100" : ""
               }`}
               onClick={() => {
@@ -34,9 +34,9 @@ export function ChatList({
               }}
             >
               <WhatsappAvatar src={chat.avatarSrc} />
-              <div className="w-full h-full px-3">
+              <div className="flex flex-col justify-between w-full h-full px-3">
                 <div className="w-full flex justify-between">
-                  <span className="font-semibold">{chat.name}</span>
+                  <span>{chat.name}</span>
                   <span className="text-muted-foreground pr-1 text-xs">
                     {chat.lastMessage
                       ? formatMessageDate(chat.lastMessage.timestamp)
@@ -44,9 +44,16 @@ export function ChatList({
                   </span>
                 </div>
 
-                <span className="text-muted-foreground text-sm">
-                  {chat.lastMessage ? chat.lastMessage.text : ""}
-                </span>
+                <div className="flex items-center text-muted-foreground text-sm gap-x-1">
+                  {chat.lastMessage?.isAudio ? (
+                    <>
+                      <Mic className="w-4 h-4" />
+                      {extractAudioDuration(chat.lastMessage.message)}
+                    </>
+                  ) : (
+                    chat.lastMessage?.message
+                  )}
+                </div>
               </div>
             </div>
           );

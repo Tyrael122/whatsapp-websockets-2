@@ -4,10 +4,16 @@ import { SendHorizonal } from "lucide-react";
 import { Button } from "./ui/button";
 import { useState } from "react";
 import { Textarea } from "./ui/textarea";
+import { AudioRecorderButton } from "./audio/audioRecorderButton";
 
-export function InputBar({
-  onSend,
-}: Readonly<{ onSend: (message: string) => void }>) {
+export interface InputBarProps {
+  onSend: (message: string) => void;
+  onAudioSend: (audioBlob: Blob) => void;
+}
+
+export function InputBar({ onSend, onAudioSend }: InputBarProps) {
+  const [isRecording, setIsRecording] = useState(false);
+
   const [message, setMessage] = useState("");
 
   const sendMessage = (message: string) => {
@@ -17,9 +23,10 @@ export function InputBar({
   };
 
   return (
-    <div className="flex items-center gap-3 box-border pb-6 pt-2 px-10">
+    <div className="flex justify-end items-center gap-3 box-border pb-6 pt-2 px-10">
       <Textarea
         placeholder="Type your message here"
+        disabled={isRecording}
         value={message}
         onChange={(event) => setMessage(event.target.value)}
         onKeyDown={(event) => {
@@ -30,9 +37,27 @@ export function InputBar({
           }
         }}
       />
-      <Button variant="ghost" size="icon" onClick={() => sendMessage(message)}>
-        <SendHorizonal />
-      </Button>
+
+      {message.trim() === "" ? (
+        <AudioRecorderButton
+          onStartRecording={() => setIsRecording(true)}
+          onClear={() => setIsRecording(false)}
+          onSend={(audioBlob) => {
+            onAudioSend(audioBlob);
+            setIsRecording(false);
+          }}
+        />
+      ) : (
+        <SendButton onSend={() => sendMessage(message)} />
+      )}
     </div>
+  );
+}
+
+function SendButton({ onSend }: { onSend: () => void }) {
+  return (
+    <Button variant="ghost" size="icon" onClick={onSend}>
+      <SendHorizonal />
+    </Button>
   );
 }

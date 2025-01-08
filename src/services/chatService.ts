@@ -34,7 +34,6 @@ export const useChatService = (onConnection?: () => void) => {
     socket.request({ type: IncomingEventType.USER_ID_INFO, userId });
     onConnection?.();
   });
-  // const socket = useWebSocket(onConnection);
 
   const updateCallbacks = useCallback(
     (callback: (data: any, userId: string) => void) => {
@@ -104,6 +103,38 @@ export const useChatService = (onConnection?: () => void) => {
     [socket, chatId, userId]
   );
 
+  const sendAudioMessage = useCallback(
+    (audioBlob: Blob) => {
+      console.log("Sending audio message", audioBlob);
+
+      const reader = new FileReader();
+      reader.readAsDataURL(audioBlob);
+
+      reader.onloadend = () => {
+        console.log("COnverted blob: ", reader.result);
+
+        const audioMessage = reader.result;
+        if (!audioMessage) {
+          console.error("Failed to convert audio blob to base64");
+          return;
+        }
+
+        const request = {
+          type: IncomingEventType.SEND_MESSAGE,
+          chatId: chatId,
+          from: userId,
+          isAudio: true,
+          message: audioMessage,
+        };
+
+        console.log("Sending audio message", request);
+
+        socket?.request(request);
+      };
+    },
+    [socket, chatId, userId]
+  );
+
   const createGroupChat = useCallback(
     (groupInfo: GroupCreationInfo) => {
       const request = {
@@ -135,6 +166,7 @@ export const useChatService = (onConnection?: () => void) => {
   return {
     updateCallbacks,
     sendMessage,
+    sendAudioMessage,
     selectChat,
     requestChatList,
     createGroupChat,
@@ -190,7 +222,7 @@ function handleChatListResponse(data: any, currentUserId: string) {
   }));
 }
 
-function handleIncomingMessages(data: any, currentUserId: string) {
+function handleIncomingMessages(data: any, currentUserId: string): Message[] {
   const messagesDTOs = data.messages as MessageDTO[];
 
   console.log("Incoming messages", messagesDTOs);
