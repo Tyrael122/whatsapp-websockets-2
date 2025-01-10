@@ -1,6 +1,6 @@
 import { useLayoutContext } from "@/app/contextProvider";
-import { ChatList, ChatListProps } from "./chatlist";
-import { GroupCreation, GroupCreationProps } from "./groupcreation";
+import { ChatList, ChatListProps } from "./leftSideRouter/chatlist";
+import { GroupCreation, GroupCreationProps } from "./leftSideRouter/groupcreation";
 import { useEffect, useState } from "react";
 
 export enum LeftSideRoute {

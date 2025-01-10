@@ -1,7 +1,7 @@
 "use client";
 
-import { WhatsappAvatar } from "./avatar";
-import { ScrollArea } from "./ui/scroll-area";
+import { WhatsappAvatar } from "../avatar";
+import { ScrollArea } from "../ui/scroll-area";
 import { extractAudioDuration, formatMessageDate } from "@/lib/utils";
 import { Chat } from "@/lib/models";
 import { Mic } from "lucide-react";
