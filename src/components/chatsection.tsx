@@ -12,11 +12,16 @@ import { AudioMessage } from "./audio/audioMessage";
 export interface ChatSectionProps {
   chat: Chat | null;
   messages: Message[];
-  sendMessage: (message: string) => void;
-  sendAudioMessage: (audioBlob: Blob) => void;
+  onSendMessage: (message: string) => void;
+  onSendAudioMessage: (audioBlob: Blob) => void;
 }
 
-export function ChatSection({ chat, messages, sendMessage, sendAudioMessage }: ChatSectionProps) {
+export function ChatSection({
+  chat,
+  messages,
+  onSendMessage,
+  onSendAudioMessage,
+}: ChatSectionProps) {
   if (!chat) {
     return null;
   }
@@ -25,14 +30,7 @@ export function ChatSection({ chat, messages, sendMessage, sendAudioMessage }: C
     <div className="hidden sm:flex flex-col justify-between flex-[2] h-full">
       <TopChatBar chatName={chat.name} avatarSrc={chat.avatarSrc} />
       <MessageList isGroup={chat.isGroup} messages={messages} />
-      <InputBar
-        onSend={(messageText) => {
-          sendMessage(messageText);
-        }}
-        onAudioSend={(audioBlob) => {
-          sendAudioMessage(audioBlob);
-        }}
-      />
+      <InputBar onSend={onSendMessage} onAudioSend={onSendAudioMessage} />
     </div>
   );
 }

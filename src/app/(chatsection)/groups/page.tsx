@@ -1,17 +1,19 @@
+"use client";
+
 import { User } from "@/lib/models";
 import { useChatService } from "@/services/chatService";
 import { useEffect, useState } from "react";
-import { Button } from "./ui/button";
 import { Camera, ChevronRight } from "lucide-react";
-import { Input } from "./ui/input";
-import { useFileInput } from "./fileinput";
-import { WhatsappAvatar } from "./avatar";
+import { WhatsappAvatar } from "@/components/avatar";
+import { Button } from "@/components/ui/button";
+import { useFileInput } from "@/components/fileinput";
+import { Input } from "@/components/ui/input";
+import { useRouter } from "next/navigation";
+import { Routes } from "@/lib/constants";
 
-export interface GroupCreationProps {
-  onCreateGroup: () => void;
-}
+export default function GroupCreation() {
+  const router = useRouter();
 
-export function GroupCreation({ onCreateGroup }: GroupCreationProps) {
   const [currentRoute, setCurrentRoute] = useState(
     GroupCreationRoute.ADDING_USERS
   );
@@ -35,7 +37,8 @@ export function GroupCreation({ onCreateGroup }: GroupCreationProps) {
           name: info.groupName,
           userIds: selectedUsers,
         });
-        onCreateGroup();
+
+        router.replace(Routes.CHATS);
       }}
       currentRoute={currentRoute}
     />

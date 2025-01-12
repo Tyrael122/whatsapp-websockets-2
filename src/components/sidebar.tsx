@@ -5,11 +5,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@radix-ui/react-tooltip";
-import { LeftSideRoute } from "./leftSideRouter";
+import { useRouter } from "next/navigation";
 
-export function Sidebar({
-  onRouteChange,
-}: Readonly<{ onRouteChange: (route: LeftSideRoute) => void }>) {
+export function Sidebar() {
+  const router = useRouter();
+
   return (
     <div className="hidden sm:flex h-full flex-col p-4 gap-5 border-2">
       {menuItems.map((item, index) => {
@@ -19,7 +19,7 @@ export function Sidebar({
               <TooltipTrigger asChild>
                 <div
                   className="flex items-center cursor-pointer"
-                  onClick={() => onRouteChange(item.route)}
+                  onClick={() => router.replace(item.route)}
                 >
                   <item.icon />
                 </div>

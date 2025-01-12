@@ -6,11 +6,11 @@ import {
 } from "@/lib/dtos";
 import { Chat, GroupCreationInfo, Message, User } from "@/lib/models";
 import { useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect } from "react";
 import { useWebSocket } from "./websocketClient";
 
 export interface UseChatServiceReturn {
-  updateCallbacks: (callback: (data: any, userId: string) => void) => void;
+  registerCallbacks: (callback: (data: any, userId: string) => void) => void;
   sendMessage: (message: string) => void;
   selectChat: (chatId: string) => void;
   requestChatList: () => void;
@@ -28,14 +28,12 @@ export const useChatService = (onConnection?: () => void) => {
     throw new Error("userId is required");
   }
 
-  const [chatId, setChatId] = useState<string | null>(null);
-
   const socket = useWebSocket((socket) => {
     socket.request({ type: IncomingEventType.USER_ID_INFO, userId });
     onConnection?.();
   });
 
-  const updateCallbacks = useCallback(
+  const registerCallbacks = useCallback(
     (callback: (data: any, userId: string) => void) => {
       if (!socket) {
         console.log("Events not registered because socket is not ready yet");
@@ -76,8 +74,6 @@ export const useChatService = (onConnection?: () => void) => {
         chatId: chatId,
       };
 
-      setChatId(chatId);
-
       console.log("Requesting chat messages", request);
 
       const response = await socket?.request(request);
@@ -88,7 +84,7 @@ export const useChatService = (onConnection?: () => void) => {
   );
 
   const sendMessage = useCallback(
-    (message: string) => {
+    (message: string, chatId: string) => {
       const request = {
         type: IncomingEventType.SEND_MESSAGE,
         chatId: chatId,
@@ -100,11 +96,11 @@ export const useChatService = (onConnection?: () => void) => {
 
       socket?.request(request);
     },
-    [socket, chatId, userId]
+    [socket, userId]
   );
 
   const sendAudioMessage = useCallback(
-    (audioBlob: Blob) => {
+    (audioBlob: Blob, chatId: string) => {
       console.log("Sending audio message", audioBlob);
 
       const reader = new FileReader();
@@ -132,7 +128,7 @@ export const useChatService = (onConnection?: () => void) => {
         socket?.request(request);
       };
     },
-    [socket, chatId, userId]
+    [socket, userId]
   );
 
   const createGroupChat = useCallback(
@@ -164,7 +160,7 @@ export const useChatService = (onConnection?: () => void) => {
   }, [socket]);
 
   return {
-    updateCallbacks,
+    registerCallbacks,
     sendMessage,
     sendAudioMessage,
     selectChat,

@@ -16,6 +16,8 @@ export function InputBar({ onSend, onAudioSend }: InputBarProps) {
 
   const [message, setMessage] = useState("");
 
+  console.log("InputBar rendered");
+
   const sendMessage = (message: string) => {
     onSend(message);
 
@@ -33,6 +35,7 @@ export function InputBar({ onSend, onAudioSend }: InputBarProps) {
           if (event.key === "Enter" && !event.shiftKey) {
             event.preventDefault();
             if (message.trim() === "") return;
+
             sendMessage(message.trim());
           }
         }}

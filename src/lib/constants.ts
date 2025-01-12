@@ -1,24 +1,30 @@
-import { LeftSideRoute } from "@/components/leftSideRouter";
 import {
   MessageCirclePlus,
   MessageSquareText,
   Phone,
 } from "lucide-react";
 
+export enum Routes {
+  CHATS = "chats",
+  GROUP_CREATION = "groups",
+  CALLS = "calls",
+  LOGIN = "login",
+}
+
 export const menuItems = [
   {
     icon: MessageSquareText,
-    route: LeftSideRoute.CHATS,
+    route: Routes.CHATS,
     description: "Chats",
   },
   {
     icon: MessageCirclePlus,
-    route: LeftSideRoute.GROUP_CREATION,
+    route: Routes.GROUP_CREATION,
     description: "Create group chat",
   },
   {
     icon: Phone,
-    route: LeftSideRoute.CALLS,
+    route: Routes.CALLS,
     description: "Calls",
   },
 ];
